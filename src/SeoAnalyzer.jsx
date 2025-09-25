@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { supabase } from "./supabaseClient";
-import ReactMarkdown from "react-markdown";
 
 export default function SeoAnalyzer({ user }) {
   const [url, setUrl] = useState("");
+  const [language, setLanguage] = useState("English");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
 
-  // Save SEO report in Supabase
   async function saveReport(userId, url, suggestions) {
     const { error } = await supabase
       .from("seo_reports")
@@ -21,7 +20,7 @@ export default function SeoAnalyzer({ user }) {
     const res = await fetch("/api/analyze", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url }),
+      body: JSON.stringify({ url, language }),
     });
     const data = await res.json();
     setResult(data);
@@ -48,6 +47,23 @@ export default function SeoAnalyzer({ user }) {
             borderRadius: "8px",
           }}
         />
+
+        <select
+          value={language}
+          onChange={(e) => setLanguage(e.target.value)}
+          style={{
+            padding: "10px",
+            border: "1px solid #ddd",
+            borderRadius: "8px",
+          }}
+        >
+          <option>English</option>
+          <option>German</option>
+          <option>Spanish</option>
+          <option>French</option>
+          <option>Italian</option>
+        </select>
+
         <button
           onClick={analyze}
           disabled={loading}
@@ -74,11 +90,42 @@ export default function SeoAnalyzer({ user }) {
           }}
         >
           <h2 style={{ marginBottom: "15px", color: "#111827" }}>
-            SEO Suggestions
+            SEO Suggestions ({language})
           </h2>
-          <div style={{ lineHeight: "1.6", color: "#374151" }}>
-            <ReactMarkdown>{result.suggestions}</ReactMarkdown>
-          </div>
+
+          <ul style={{ listStyle: "none", padding: 0 }}>
+            {result.suggestions.map((s, i) => (
+              <li
+                key={i}
+                style={{
+                  marginBottom: "15px",
+                  padding: "10px",
+                  background: "white",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "8px",
+                }}
+              >
+                <p style={{ marginBottom: "8px" }}>{s.text}</p>
+                <div
+                  style={{
+                    background: "#e5e7eb",
+                    borderRadius: "6px",
+                    height: "8px",
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: `${s.impact}%`,
+                      background: "#4F46E5",
+                      height: "100%",
+                    }}
+                  />
+                </div>
+                <small style={{ color: "#6b7280" }}>{s.impact}% impact</small>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </div>
