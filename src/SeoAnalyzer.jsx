@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "./supabaseClient";
+import jsPDF from "jspdf";
 
 export default function SeoAnalyzer({ user }) {
   const [url, setUrl] = useState("");
@@ -30,6 +31,35 @@ export default function SeoAnalyzer({ user }) {
     }
 
     setLoading(false);
+  };
+
+  // 👇 Export PDF function
+  const exportPDF = () => {
+    if (!result) return;
+    const doc = new jsPDF();
+
+    doc.setFontSize(18);
+    doc.text("SEO Analysis Report", 14, 20);
+
+    doc.setFontSize(12);
+    doc.text(`Website: ${url}`, 14, 35);
+    doc.text(`Language: ${language}`, 14, 45);
+
+    let y = 60;
+    result.suggestions.forEach((s, i) => {
+      doc.text(`${i + 1}. ${s.text}`, 14, y);
+      y += 7;
+      doc.text(`Impact: ${s.impact}%`, 20, y);
+      y += 10;
+
+      // If the page is getting full, add a new page
+      if (y > 270) {
+        doc.addPage();
+        y = 20;
+      }
+    });
+
+    doc.save("seo_report.pdf");
   };
 
   return (
@@ -126,6 +156,21 @@ export default function SeoAnalyzer({ user }) {
               </li>
             ))}
           </ul>
+
+          <button
+            onClick={exportPDF}
+            style={{
+              marginTop: "20px",
+              padding: "10px 20px",
+              border: "none",
+              borderRadius: "8px",
+              background: "#10B981",
+              color: "white",
+              cursor: "pointer",
+            }}
+          >
+            Export as PDF
+          </button>
         </div>
       )}
     </div>
